@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPR Hostel Outpass Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body class="login">
+
+
+    <!-- Book Style Container -->
+    <div class="book-container">
+
+        <!-- Left Side: Logo + Texts -->
+        <div class="book-left">
+            <img src="{{ url_for('static', filename='kprlogo.jpg') }}" alt="KPR Logo" class="kprlogo">
+            <h1>Welcome to KPR Hostel Outpass</h1>
+            <p>Seamless, secure, and fast. Manage your outpass requests easily.</p>
+        </div>
+
+        <!-- Right Side: Login Form -->
+        <div class="book-right">
+            <div class="logins">
+                <h1>Login</h1>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Role Selection Form -->
+                <form action="{{ url_for('role_redirect') }}" method="POST">
+                    <select name="role" id="role" required>
+                        <center>
+                            <option value="" disabled selected>Select Role</option>
+                        </center>
+                        <option value="student">Student</option>
+                        <option value="tutor">Tutor</option>
+                        <option value="warden">Warden</option>
+                        <option value="watchman">Main Gate</option>
+                    </select>
+
+                    <button class="loginbutton" type="submit">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for page load
+        window.onload = function () {
+            setTimeout(function () {
+                let flash = document.querySelector(".flash");
+                if (flash) {
+                    flash.remove();  // Removes element completely → no empty space
+                }
+            }, 5000); // same duration as your fadeOut (5s)
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        Swal.fire({
+            icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+            title: "{{ category|capitalize }}",
+            text: "{{ message }}",
+            confirmButtonText: "OK"
+        });
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    });
+</script>
+</body>
+
+</html>

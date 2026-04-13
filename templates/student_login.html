@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="studentloginbody">
+         <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="studentloginflash">
+                            {% for category, message in messages %}
+                                <div class="flash {{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+    <!-- Book Style Container -->
+    <div class="student-book-container">
+
+        <!-- Left Side: Logo + Welcome Message -->
+        <div class="student-book-left">
+            <img src="{{ url_for('static', filename='kprlogo.jpg') }}" alt="Logo" class="studentlogo">
+            <h1>Welcome Back, Student!</h1>
+            <p>Access your dashboard, manage outpass requests, and stay connected.</p>
+        </div>
+
+        <!-- Right Side: Student Login Form -->
+        <div class="student-book-right">
+            <form action="{{ url_for('student_login') }}" class="studentlogin" method="POST">
+
+                <h2>Student Login</h2>
+
+           
+
+                <!-- Username -->
+                <div class="input-group">
+                    <label for="username">Roll Number or Username :</label>
+                    <input type="text" name="username" id="username" placeholder="Enter Roll Number or Username" required>
+            
+                    <label for="password">Password :</label>
+                    <input type="password" name="password" id="password" placeholder="Enter Password" required>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="studentloginbutton">Login</button>
+
+                <!-- Back to Main Login -->
+                <center><a href="{{ url_for('login') }}" class="backbutton"> 🔙 Back To Main</a></center>
+            </form>
+        </div>
+    </div>
+
+    <!-- Yeti Animation Script -->
+    <script>
+        const yeti = document.querySelector(".yeti");
+
+        function moveRight() { yeti.style.transform = "translateX(50px)"; }
+        function moveLeft() { yeti.style.transform = "translateX(-50px)"; }
+        function resetPosition() { yeti.style.transform = "translateX(0)"; }
+
+        document.getElementById("username").addEventListener("focus", moveRight);
+        document.getElementById("password").addEventListener("focus", moveLeft);
+        document.addEventListener("click", (event) => {
+            if (!event.target.matches("#username, #password")) resetPosition();
+        });
+    </script>
+</body>
+</html>

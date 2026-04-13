@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filtered Attendance Results - Tutor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .att-wrapper {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+            font-family: 'Gill Sans', Calibri, sans-serif;
+        }
+
+        .att-header-card {
+            background: linear-gradient(135deg, #003366, #0055a5);
+            color: white;
+            border-radius: 14px;
+            padding: 24px 30px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 6px 20px rgba(0,38,77,0.22);
+        }
+
+        .filter-summary {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+            background: #f8f9fa;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            align-items: center;
+        }
+
+        .filter-tag {
+            background: #003366;
+            color: white;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Table */
+        .att-table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.09);
+        }
+
+        .att-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .att-table th {
+            background: #003366;
+            color: white;
+            padding: 12px 14px;
+            text-align: center;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .att-table td {
+            padding: 10px 14px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .att-table tr:nth-child(even) { background: #f8f9fa; }
+        .att-table tr:hover { background: #e8f0fe; }
+
+        .att-table td:first-child, .att-table td:nth-child(2),
+        .att-table td:nth-child(3), .att-table td:nth-child(4),
+        .att-table td:nth-child(5) {
+            text-align: left;
+        }
+
+        .badge-present { background: #d4edda; color: #155724; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: bold; }
+        .badge-absent  { background: #f8d7da; color: #721c24; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: bold; }
+        .badge-na      { background: #e2e3e5; color: #495057; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; }
+
+        .category-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: bold;
+        }
+
+        .cat-hostel    { background: #cce5ff; color: #004085; }
+        .cat-dayscholar { background: #d4edda; color: #155724; }
+        .cat-sports    { background: #fff3cd; color: #856404; }
+
+        .no-records {
+            text-align: center;
+            padding: 60px 20px;
+            color: #777;
+            font-size: 1.1rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #003366;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 24px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            .att-table { font-size: 0.78rem; }
+            .att-table th, .att-table td { padding: 8px 8px; }
+        }
+    </style>
+</head>
+<body class="tutordashboardbody">
+
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Tutor Portal</h1>
+        <div class="user-menu">
+            <button id="menuBtn" class="user-menu-btn">
+                <i class="fas fa-user-circle"></i> Menu <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="menuContent" class="user-menu-content">
+                <div class="profile-section">
+                    <div class="profile-header">
+                        <div class="profile-photo">
+                            <i class="fas fa-user" style="font-size: 2rem; color: #777;"></i>
+                        </div>
+                        <div>
+                            <h2>{{ tutor.name }}</h2>
+                            <p>{{ tutor.department }}</p>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('tutor_attendance_view') }}"><i class="fas fa-chart-bar"></i> Regular Attendance Check</a>
+                <a href="{{ url_for('tutor_outpass') }}"><i class="fas fa-file-alt"></i> Outpass Check</a>
+                <a href="{{ url_for('history') }}"><i class="fas fa-history"></i> View History</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn" onclick="confirmLogout(event)">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="att-wrapper">
+
+        <!-- Header Card -->
+        <div class="att-header-card">
+            <div>
+                <h2 style="margin:0; font-size:1.5rem;"><i class="fas fa-filter"></i> Filtered Attendance Results</h2>
+                <p style="margin:4px 0 0; opacity:0.85;">Department: <strong>{{ tutor.department }}</strong></p>
+            </div>
+            <div style="text-align:right;">
+                <p style="margin:0; opacity:0.85; font-size:0.9rem;">Viewing date:</p>
+                <strong style="font-size:1.1rem;">{{ selected_date }}</strong>
+            </div>
+        </div>
+
+        <!-- Filter Summary -->
+        <div class="filter-summary">
+            <span style="font-weight:bold; color:#333;">Active Filters:</span>
+            <span class="filter-tag"><i class="fas fa-calendar"></i> {{ selected_date }}</span>
+            <span class="filter-tag"><i class="fas fa-users"></i> {{ selected_category|capitalize }}</span>
+            <span class="filter-tag"><i class="fas fa-clock"></i> {% if selected_period == 'all' %}All Periods{% else %}Period {{ selected_period }}{% endif %}</span>
+        </div>
+
+        <!-- Attendance Table -->
+        {% if students %}
+        <div class="att-table-wrapper">
+            <table class="att-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student Name</th>
+                        <th>Roll Number</th>
+                        <th>Department</th>
+                        <th>Category</th>
+                        {% if selected_period == 'all' %}
+                            {% for p in range(1, 9) %}
+                            <th>P{{ p }}</th>
+                            {% endfor %}
+                            <th>Total Present</th>
+                        {% else %}
+                            <th>Period {{ selected_period }}</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in students %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ row.student.name }}</strong></td>
+                        <td>{{ row.student.roll_number }}</td>
+                        <td>{{ row.student.department }}</td>
+                        <td>
+                            <span class="category-badge
+                                {% if row.student.student_category == 'hostel' %}cat-hostel
+                                {% elif row.student.student_category == 'sports' %}cat-sports
+                                {% else %}cat-dayscholar{% endif %}">
+                                {{ row.student.student_category }}
+                            </span>
+                        </td>
+
+                        {% if selected_period == 'all' %}
+                            {% for p in range(1, 9) %}
+                            <td>
+                                {% if row.periods[p] == 'Present' %}
+                                    <span class="badge-present">P</span>
+                                {% elif row.periods[p] == 'Absent' %}
+                                    <span class="badge-absent">A</span>
+                                {% else %}
+                                    <span class="badge-na">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            <td><strong>{{ row.present_count }} / 8</strong></td>
+                        {% else %}
+                            <td>
+                                {% if row.periods[selected_period|int] == 'Present' %}
+                                    <span class="badge-present">Present</span>
+                                {% elif row.periods[selected_period|int] == 'Absent' %}
+                                    <span class="badge-absent">Absent</span>
+                                {% else %}
+                                    <span class="badge-na">Not Marked</span>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="no-records">
+            <i class="fas fa-inbox" style="font-size:3rem; color:#ccc; display:block; margin-bottom:16px;"></i>
+            No student attendance records found for the selected filters.
+        </div>
+        {% endif %}
+
+        <div style="text-align:center; margin-top:24px;">
+            <a href="{{ url_for('tutor_attendance_view') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Attendance Check
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuBtn = document.getElementById('menuBtn');
+            const menuContent = document.getElementById('menuContent');
+            menuContent.style.display = 'none';
+            menuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                menuContent.style.display = (menuContent.style.display === 'block') ? 'none' : 'block';
+            });
+            document.addEventListener('click', function (e) {
+                if (!menuContent.contains(e.target) && e.target !== menuBtn) {
+                    menuContent.style.display = 'none';
+                }
+            });
+        });
+
+        function confirmLogout(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will be logged out of your account.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, Logout",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) { window.location.href = event.target.href; }
+            });
+        }
+    </script>
+</body>
+</html>

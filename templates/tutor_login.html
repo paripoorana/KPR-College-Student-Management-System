@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Login - Hostel Outpass</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body class="tutorloginbody">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="tutordashboardflash">
+                            {% for category, message in messages %}
+                                <div class="flash {{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+    <div class="tutor-book-container">
+        <!-- Left Side - Logo + Info -->
+        <div class="tutor-book-left">
+            <img src="{{ url_for('static', filename='kprlogo.jpg') }}" alt="Logo" class="tutorlogo">
+            <h1>Tutor Portal</h1>
+            <p>Access the tutor dashboard to manage student outpass requests and monitor hostel activities.</p>
+        </div>
+        
+        <!-- Right Side - Login Form -->
+        <div class="tutor-book-right">
+            <form action="{{ url_for('tutor_login') }}" class="tutorlogin" method="POST">
+                
+                <h2>Tutor Login</h2>
+                
+            
+                
+                <div class="input-group">
+                    <label for="username">Email or Username :</label>
+                    <input type="text" name="username" id="username" placeholder="Enter Email or Username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Password :</label>
+                    <input type="password" name="password" id="password" placeholder="Enter Password" required>
+                </div>
+
+                <button class="tutorloginbutton" type="submit">Login</button>
+                
+                <div>
+                    <a href="{{ url_for('tutor_forgot_password') }}" class="backbutton">Forgot Password?</a>
+                </div>
+                
+                <div>
+                    <a href="{{ url_for('login') }}" class="backbutton">Back To Main Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

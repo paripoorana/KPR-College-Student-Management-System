@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .attendance-wrapper {
+            max-width: 860px;
+            margin: 30px auto;
+            padding: 20px;
+            font-family: 'Gill Sans', Calibri, sans-serif;
+        }
+
+        .student-info-card {
+            background: linear-gradient(135deg, #00264d, #003d80);
+            color: white;
+            border-radius: 14px;
+            padding: 24px 30px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 6px 20px rgba(0,38,77,0.22);
+        }
+
+        .student-info-card .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .student-info-card .info-label {
+            font-size: 0.75rem;
+            opacity: 0.75;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .student-info-card .info-value {
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .periods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .period-card {
+            border-radius: 14px;
+            padding: 18px 16px;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .period-card.active-period {
+            border-color: #003366;
+            background: #e8f0fe;
+            box-shadow: 0 4px 15px rgba(0,51,102,0.15);
+        }
+
+        .period-card.past-period {
+            opacity: 0.6;
+        }
+
+        .period-card.future-period {
+            opacity: 0.55;
+        }
+
+        .period-label {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #00264d;
+        }
+
+        .period-time {
+            font-size: 0.82rem;
+            color: #666;
+        }
+
+        .period-badge {
+            font-size: 0.72rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-active { background: #d4edda; color: #155724; }
+        .badge-past   { background: #f8d7da; color: #721c24; }
+        .badge-future { background: #fff3cd; color: #856404; }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 70px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #ccc;
+            border-radius: 34px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: #28a745;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(36px);
+        }
+
+        .toggle-switch input:disabled + .toggle-slider {
+            cursor: not-allowed;
+            background: #aaa;
+        }
+
+        .toggle-label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .present-label { color: #28a745; }
+        .absent-label  { color: #dc3545; }
+
+        /* Already marked indicator */
+        .already-marked {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: #28a745;
+            font-size: 0.85rem;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #003366, #0055a5);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 16px 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Gill Sans', Calibri, sans-serif;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,51,102,0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .location-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+
+        .location-ok    { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .location-fail  { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .location-loading { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+        .date-display {
+            text-align: center;
+            margin-bottom: 22px;
+            font-size: 1.05rem;
+            color: #555;
+        }
+
+        @media (max-width: 600px) {
+            .student-info-card { flex-direction: column; }
+            .periods-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body class="tutordashboardbody">
+
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Student Portal</h1>
+        <div class="user-menu">
+            <button id="menuBtn" style="margin-right: 3cm;" class="user-menu-btn">
+                <i class="fas fa-user-circle"></i> Menu <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="menuContent" class="user-menu-content">
+                <div class="profile-section">
+                    <div class="profile-header">
+                        {% if student and student.photo %}
+                        <img src="{{ url_for('static', filename='students/student_photos/' + student.photo) }}"
+                            alt="Student Photo" class="profile-photo">
+                        {% else %}
+                        <div class="profile-photo"
+                            style="background-color: #ddd; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user" style="font-size: 3rem; color: #777;"></i>
+                        </div>
+                        {% endif %}
+                        <h2>{{ student.name if student else 'Student Name' }}</h2>
+                        <p>{{ student.roll_number if student else 'Roll Number' }}</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('student_category') }}"><i class="fas fa-arrow-left"></i> Back</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn" onclick="confirmLogout(event)">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="attendance-wrapper">
+
+        <h2 style="text-align:center; color:#00264d; font-size:1.6rem; margin-bottom:6px;">
+            <i class="fas fa-clipboard-check"></i>
+            Regular Class Attendance
+        </h2>
+
+        <div class="date-display">
+            <i class="fas fa-calendar-alt"></i> <strong>{{ today }}</strong> &nbsp;|&nbsp;
+            <i class="fas fa-clock"></i> <span id="liveClock">--:--:--</span>
+        </div>
+
+        <!-- Student Info Card -->
+        <div class="student-info-card">
+            <div class="info-item">
+                <span class="info-label">Name</span>
+                <span class="info-value">{{ student.name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Roll Number</span>
+                <span class="info-value">{{ student.roll_number }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Department</span>
+                <span class="info-value">{{ student.department }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Section</span>
+                <span class="info-value">{{ student.department.split('_')[-1] if student.department else 'N/A' }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Category</span>
+                <span class="info-value">{{ student.student_category }}</span>
+            </div>
+        </div>
+
+        <!-- Location Status -->
+        <div id="locationStatus" class="location-status location-loading">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="locationText">Detecting your location...</span>
+        </div>
+
+        <input type="hidden" id="userLat" value="">
+        <input type="hidden" id="userLon" value="">
+        <input type="hidden" id="locationValid" value="false">
+
+        <!-- Periods Grid -->
+        <form id="attendanceForm" method="POST" action="{{ url_for('submit_period_attendance') }}">
+            <input type="hidden" name="attendance_type" value="{{ attendance_type }}">
+            <input type="hidden" name="lat" id="formLat" value="">
+            <input type="hidden" name="lon" id="formLon" value="">
+            <input type="hidden" name="device_id" value="{{ device_id }}">
+
+            <div class="periods-grid">
+                {% for period in periods %}
+                <div class="period-card
+                    {% if period.is_active %}active-period
+                    {% elif period.is_past %}past-period
+                    {% else %}future-period{% endif %}">
+
+                    {% if period.already_marked %}
+                    <span class="already-marked" title="Already submitted">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                    {% endif %}
+
+                    <span class="period-label">Period {{ period.number }}</span>
+                    <span class="period-time">{{ period.start }} – {{ period.end }}</span>
+
+                    <span class="period-badge
+                        {% if period.is_active %}badge-active
+                        {% elif period.is_past %}badge-past
+                        {% else %}badge-future{% endif %}">
+                        {% if period.is_active %}Active
+                        {% elif period.is_past %}Ended
+                        {% else %}Upcoming{% endif %}
+                    </span>
+
+                    {% if period.already_marked %}
+                        <!-- Already submitted — show status -->
+                        <span style="font-size:0.85rem; font-weight:bold; color:
+                            {% if period.marked_status == 'Present' %}#28a745{% else %}#dc3545{% endif %};">
+                            {{ period.marked_status }}
+                        </span>
+                        <input type="hidden" name="period_{{ period.number }}" value="{{ period.marked_status }}">
+                    {% elif period.is_active %}
+                        <!-- Active period — show toggle -->
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="period_{{ period.number }}_toggle"
+                                id="toggle_{{ period.number }}" onchange="updateLabel({{ period.number }})">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label absent-label" id="label_{{ period.number }}">Absent</span>
+                        <input type="hidden" name="period_{{ period.number }}" id="val_{{ period.number }}" value="Absent">
+                    {% elif period.is_past and not period.already_marked %}
+                        <!-- Past & not marked — auto absent -->
+                        <span style="font-size:0.85rem; font-weight:bold; color:#dc3545;">Auto Absent</span>
+                        <input type="hidden" name="period_{{ period.number }}" value="Absent">
+                    {% else %}
+                        <!-- Future period — disabled -->
+                        <label class="toggle-switch">
+                            <input type="checkbox" disabled>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label" style="color:#999;">Not Yet</span>
+                        <input type="hidden" name="period_{{ period.number }}" value="Absent">
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Note about active periods -->
+            {% set has_active = periods | selectattr('is_active') | list %}
+            {% if has_active %}
+            <p style="text-align:center; color:#555; margin-bottom:20px; font-size:0.9rem;">
+                <i class="fas fa-info-circle"></i> Toggle periods to <strong>Present</strong> before submitting.
+                You must be within the college premises.
+            </p>
+            <button type="button" class="submit-btn" id="submitBtn" onclick="submitAttendance()">
+                <i class="fas fa-paper-plane"></i> Submit Attendance
+            </button>
+            {% else %}
+            <p style="text-align:center; color:#856404; background:#fff3cd; padding:14px; border-radius:10px; margin-bottom:20px;">
+                <i class="fas fa-clock"></i> No active period right now. Attendance can only be marked during class hours.
+            </p>
+            {% endif %}
+        </form>
+
+        <div style="text-align:center; margin-top:10px;">
+            <a href="{{ url_for('student_category') }}" style="color:#00264d; font-weight:bold;">
+                <i class="fas fa-arrow-left"></i> Back to Category Selection
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Live clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('liveClock').textContent = now.toLocaleTimeString('en-IN');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // GPS Location Detection
+        const COLLEGE_LAT = {{ college_lat }};
+        const COLLEGE_LON = {{ college_lon }};
+        const ALLOWED_RADIUS_KM = 0.5;
+
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+            return R * 2 * Math.asin(Math.sqrt(a));
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    document.getElementById('userLat').value = lat;
+                    document.getElementById('userLon').value = lon;
+                    document.getElementById('formLat').value = lat;
+                    document.getElementById('formLon').value = lon;
+
+                    const dist = haversine(lat, lon, COLLEGE_LAT, COLLEGE_LON);
+                    const statusEl = document.getElementById('locationStatus');
+                    const textEl = document.getElementById('locationText');
+
+                    if (dist <= ALLOWED_RADIUS_KM) {
+                        statusEl.className = 'location-status location-ok';
+                        textEl.textContent = `✅ Location verified — You are on campus (${(dist*1000).toFixed(0)}m away)`;
+                        document.getElementById('locationValid').value = 'true';
+                    } else {
+                        statusEl.className = 'location-status location-fail';
+                        textEl.textContent = `❌ Location check failed — You must be on campus to mark attendance (${dist.toFixed(2)}km away)`;
+                        document.getElementById('locationValid').value = 'false';
+                    }
+                },
+                function(err) {
+                    const statusEl = document.getElementById('locationStatus');
+                    const textEl = document.getElementById('locationText');
+                    statusEl.className = 'location-status location-fail';
+                    textEl.textContent = '❌ Location access denied. Please enable GPS to mark attendance.';
+                    document.getElementById('locationValid').value = 'false';
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        } else {
+            document.getElementById('locationStatus').className = 'location-status location-fail';
+            document.getElementById('locationText').textContent = '❌ Geolocation not supported by your browser.';
+        }
+
+        // Toggle label update
+        function updateLabel(periodNum) {
+            const toggle = document.getElementById('toggle_' + periodNum);
+            const label = document.getElementById('label_' + periodNum);
+            const val = document.getElementById('val_' + periodNum);
+            if (toggle.checked) {
+                label.textContent = 'Present';
+                label.className = 'toggle-label present-label';
+                val.value = 'Present';
+            } else {
+                label.textContent = 'Absent';
+                label.className = 'toggle-label absent-label';
+                val.value = 'Absent';
+            }
+        }
+
+        // Submit with location check
+        function submitAttendance() {
+            const locationValid = document.getElementById('locationValid').value;
+            if (locationValid !== 'true') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Location Required',
+                    text: 'You must be within the college campus to mark attendance. Please enable GPS and try again.',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: "Submit Attendance?",
+                text: "Are you sure you want to submit your attendance for today?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#003366",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, Submit!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: "Submitting...",
+                        text: "Please wait...",
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+                    document.getElementById('attendanceForm').submit();
+                }
+            });
+        }
+
+        // Menu toggle
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('menuContent').style.display = 'none';
+            const menuBtn = document.getElementById('menuBtn');
+            const menuContent = document.getElementById('menuContent');
+            menuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                menuContent.style.display = (menuContent.style.display === 'block') ? 'none' : 'block';
+                menuBtn.style.display = 'none';
+            });
+            document.addEventListener('click', function (e) {
+                if (!menuContent.contains(e.target) && e.target !== menuBtn) {
+                    menuContent.style.display = 'none';
+                    menuBtn.style.display = 'inline-block';
+                }
+            });
+        });
+
+        function confirmLogout(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will be logged out of your account.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, Logout",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) { window.location.href = event.target.href; }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Page Styling */
+    body,
+    html {
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Back Button */
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background-color: #ffffff;
+        color: #007bff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .back-button i {
+        font-size: 16px;
+    }
+
+    .back-button:hover {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+        transform: scale(1.05);
+    }
+
+    /* Center Container */
+    .edit-student-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 15px 30px 15px; /* Extra top padding for back button */
+    }
+
+    /* Form Styling */
+    .edit-student-form {
+        width: 100%;
+        max-width: 600px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        padding: 25px 30px;
+        overflow-y: auto;
+        max-height: 80vh;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .edit-student-form:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Heading */
+    .form-title {
+        text-align: center;
+        color: #222;
+        font-size: 24px;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+
+    /* Form Groups */
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 15px;
+        outline: none;
+        transition: 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    }
+
+    /* Buttons */
+    .submit-button,
+    .button {
+        display: inline-block;
+        padding: 12px 18px;
+        font-size: 15px;
+        border: none;
+        border-radius: 8px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.3s;
+    }
+
+    .submit-button:hover,
+    .button:hover {
+        background-color: #0056b3;
+    }
+
+    .button {
+        background-color: #6c757d;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .button:hover {
+        background-color: #5a6268;
+    }
+
+    /* Flash Messages */
+    .flash-messages {
+        margin: 15px auto;
+        width: fit-content;
+        max-width: 90%;
+    }
+
+    /* Student Photo */
+    img {
+        border-radius: 8px;
+        margin-top: 8px;
+        border: 1px solid #ddd;
+        padding: 2px;
+        max-width: 100px;
+    }
+
+    /* Mobile Responsive */
+    @media screen and (max-width: 600px) {
+        .edit-student-form {
+            padding: 20px;
+            margin: 10px;
+            max-height: 85vh;
+        }
+
+        .form-group label,
+        .form-group input,
+        .form-group select {
+            font-size: 14px;
+        }
+
+        .submit-button,
+        .button {
+            width: 100%;
+            text-align: center;
+        }
+
+        .back-button {
+            padding: 6px 12px;
+            font-size: 13px;
+            gap: 4px;
+        }
+    }
+</style>
+
+<!-- Back Button -->
+<a href="{{ url_for('warden_dashboard') }}" class="back-button">
+    <i class="fas fa-arrow-left"></i> Back
+</a>
+
+<div class="edit-student-container">
+    <form method="POST" class="edit-student-form" enctype="multipart/form-data">
+        <h2 class="form-title">Edit Student Details</h2>
+
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" value="{{ student.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" value="{{ student.username }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">New Password (leave blank to keep current password):</label>
+            <input type="password" id="password" name="password" placeholder="Enter new password">
+        </div>
+
+        <div class="form-group">
+            <label for="department">Department:</label>
+            <select id="department" name="department" required>
+                <option value="">Select Department</option>
+                {% for dept in departments %}
+                <option value="{{ dept.name }}" {% if student and student.department==dept.name %}selected{% endif %}>
+                    {{ dept.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="roll_number">Roll Number:</label>
+            <input type="text" id="roll_number" name="roll_number" value="{{ student.roll_number }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="parent_phone">Parent Phone:</label>
+            <input type="text" id="parent_phone" name="parent_phone" value="{{ student.parent_phone }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="room_number">Room Number:</label>
+            <input type="text" id="room_number" name="room_number" value="{{ student.room_number }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="hostel_name">Hostel Name:</label>
+            <select id="hostel_name" name="hostel_name" required>
+                <option value="">Select Hostel</option>
+                {% for hostel in hostels %}
+                <option value="{{ hostel.name }}" {% if student and student.hostel_name==hostel.name %}selected{% endif %}>
+                    {{ hostel.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="student_category">Student Category:</label>
+            <input type="text" id="student_category" name="student_category" value="{{ student.student_category }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="Male" {% if student.gender=='Male' %}selected{% endif %}>Male</option>
+                <option value="Female" {% if student.gender=='Female' %}selected{% endif %}>Female</option>
+                <option value="Other" {% if student.gender=='Other' %}selected{% endif %}>Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="photo">Photo:</label>
+            <input type="file" id="photo" name="photo">
+            {% if student.photo %}
+            <p>Current: <img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}" alt="Photo"></p>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="submit-button">Update</button>
+    </form>
+</div>
+
+<!-- SweetAlert Flash Messages -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        Swal.fire({
+            icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+            title: "{{ category|capitalize }}",
+            text: "{{ message }}",
+            confirmButtonText: "OK"
+        });
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    });
+</script>
+{% endblock %}

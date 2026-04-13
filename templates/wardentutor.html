@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Font Awesome CDN -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<!-- Back Button at Top Left -->
+<div style="position: absolute; top: 20px; left: 20px;">
+    <a href="{{ url_for('warden_dashboard') }}" style="text-decoration: none;">
+        <button style="background-color: #102B5C; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+    </a>
+</div>
+
+<center><h2 style="color:#FFD700; margin: 15px 0; padding-top: 20px;">Tutor Management</h2></center>
+
+<!-- ✅ Internal CSS for Mobile-Friendly Design -->
+<style>
+    /* ✅ Table Container (Scrollable on Mobile) */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 70vh;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        scrollbar-width: thin;
+        scrollbar-color: #FFD700 #0A1931;
+        margin-bottom: 25px;
+        background: linear-gradient(135deg, #0A1931 0%, #102B5C 100%);
+    }
+
+    /* ✅ Hide Default Scrollbars (Invisible) */
+    .table-responsive::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* ✅ Table Styling */
+    .warden_studentsstable {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+        background-color: #102B5C;
+        color: rgb(1, 1, 1);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .warden_studentssthead th {
+        background: linear-gradient(135deg, #FFD700 0%, #FFC107 100%);
+        color: #0A1931;
+        font-size: 16px;
+        padding: 16px;
+        text-align: center;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+        position: relative;
+        top: 0;
+        z-index: 10;
+    }
+
+    .warden_studentsstbody td {
+        padding: 14px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+    }
+
+    .warden_studentsstbody tr {
+        transition: transform 0.2s ease;
+    }
+
+
+
+    /* ✅ Action Buttons Styling */
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        margin: 0 6px;
+        transition: all 0.3s ease;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-btn:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .edit-icon {
+        color: #FFD700;
+        font-size: 18px;
+        transition: color 0.3s ease;
+    }
+
+    .action-btn:hover .edit-icon {
+        color: #FFFFFF;
+    }
+
+    .delete-icon {
+        color: #ff4d4d;
+        font-size: 18px;
+        transition: color 0.3s ease;
+    }
+
+    .action-btn:hover .delete-icon {
+        color: #ff0000;
+    }
+
+    /* Status Indicators */
+    .status-active {
+        color: #00ff7f;
+        font-weight: bold;
+        padding: 6px 12px;
+        border-radius: 20px;
+        background-color: rgba(0, 255, 127, 0.1);
+        display: inline-block;
+    }
+
+    .status-leave {
+        color: #ff4d4d;
+        font-weight: bold;
+        padding: 6px 12px;
+        border-radius: 20px;
+        background-color: rgba(255, 77, 77, 0.1);
+        display: inline-block;
+    }
+
+    /* ✅ "Add" & "Back" Links */
+    .warden-dashboard-link {
+        display: inline;
+        align-items: center;
+        margin: 15px 12px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #FFD700 0%, #FFC107 100%);
+        color: #0A1931;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        gap: 8px;
+        margin-left: 40%;
+    }
+
+    .warden-dashboard-link:hover {
+        background: linear-gradient(135deg, #FFC107 0%, #FFD700 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+        color: #0A1931;
+    }
+
+    /* Button Container */
+    .button-container {
+        text-align: center;
+        margin-top: 25px;
+    }
+
+    /* ✅ Mobile Responsive Styling */
+    @media screen and (max-width: 768px) {
+        .warden_studentsstable {
+            min-width: 800px;
+            font-size: 14px;
+        }
+
+        .warden_studentssthead th {
+            padding: 14px;
+            font-size: 14px;
+        }
+
+        .warden_studentsstbody td {
+            padding: 12px;
+            font-size: 13px;
+        }
+
+        .warden-dashboard-link {
+            padding: 10px 18px;
+            font-size: 14px;
+            margin: 10px 8px;
+        }
+
+        /* Adjust back button for mobile */
+        div[style*="position: absolute"] {
+            position: relative !important;
+            top: 0 !important;
+            left: 0 !important;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        div[style*="position: absolute"] button {
+            margin: 0 auto;
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        h2 {
+            font-size: 1.4rem;
+            margin: 10px 0;
+        }
+
+        .warden_studentsstable {
+            min-width: 700px;
+            font-size: 13px;
+        }
+
+        .warden-dashboard-link {
+            width: 90%;
+            justify-content: center;
+            margin: 8px auto;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .table-responsive {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    /* SweetAlert customization */
+    .swal2-popup {
+        background: #0A1931 !important;
+        color: white !important;
+        border-radius: 15px !important;
+        border: 2px solid #FFD700 !important;
+    }
+
+    .swal2-title {
+        color: #FFD700 !important;
+    }
+
+    .swal2-confirm {
+        background: linear-gradient(135deg, #FFD700 0%, #FFC107 100%) !important;
+        color: #0A1931 !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 10px 25px !important;
+    }
+</style>
+
+<!-- ✅ Tutors Table -->
+<div class="table-responsive">
+    <table class="warden_studentsstable" border="0">
+        <thead class="warden_studentssthead">
+            <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Department</th>
+                <th>Email</th>
+                <th>Leave Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody class="warden_studentsstbody">
+            {% for tutor in tutors %}
+            <tr>
+                <td>{{ tutor.name }}</td>
+                <td>{{ tutor.username }}</td>
+                <td>{{ tutor.password }}</td>
+                <td>{{ tutor.department if tutor.department else 'N/A' }}</td>
+                <td>{{ tutor.email }}</td>
+                <td>
+                    {% if tutor.leave_status %}
+                        <span class="status-leave">On Leave</span>
+                    {% else %}
+                        <span class="status-active">Active</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <!-- Edit Button -->
+                    <a href="{{ url_for('edit_tutor', tutor_id=tutor.id) }}" class="action-btn" title="Edit Tutor">
+                       <i class="fas fa-edit edit-icon"></i>
+                    </a>
+
+                    <!-- Delete Button -->
+                    <form action="{{ url_for('delete_tutor', tutor_id=tutor.id) }}" method="POST" style="display: inline;">
+                        <button type="submit" class="action-btn" onclick="return confirm('Are you sure you want to delete this tutor?');" title="Delete Tutor">
+                            <i class="fas fa-trash delete-icon"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; color: #FFD700; padding: 30px; font-style: italic;">
+                    <i class="fas fa-users" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                    No tutors found. Add your first tutor to get started.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ✅ Buttons -->
+<div class="button-container">
+    <a href="{{ url_for('add_tutor') }}" class="warden-dashboard-link">
+        <i class="fas fa-user-plus"></i> Add New Tutor
+    </a>
+</div>
+
+<!-- ✅ Flash Messages -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        Swal.fire({
+            icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+            title: "{{ category|capitalize }}",
+            text: "{{ message }}",
+            confirmButtonText: "OK",
+            background: '#0A1931',
+            color: '#FFFFFF',
+            confirmButtonColor: '#FFD700'
+        });
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    });
+</script>
+
+{% endblock %}

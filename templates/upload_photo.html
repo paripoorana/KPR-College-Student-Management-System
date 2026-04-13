@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Student Photo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="studentUploadPhotoBody">
+
+   
+
+    <div class="studentUploadPhoto">
+        <h3>Upload Student Photo</h3>
+        <form id="uploadForm" class="student_upload_photo" action="{{ url_for('upload_photo') }}" method="POST" enctype="multipart/form-data">
+            <h3><label for="roll_number">Roll Number:</label></h3>
+            <center><input type="text" id="roll_number" name="roll_number" required onblur="verifyRollNumber()"></center>
+
+            <h3><label for="student_name">Student Name:</label></h3>
+            <center><input type="text" id="student_name" readonly></center>
+
+            <h3><label for="photo">Upload Photo:</label></h3>
+            <center><input type="file" id="photo" name="photo" accept="image/*" required onchange="updateFileName()"></center>
+            <img id="photoPreview" style="display: none; max-width: 200px; margin-top: 10px; border: rebeccapurple;">
+
+            <button type="submit" class="button">Upload Photo</button>
+        </form>
+        <center><a href="{{ url_for('add_student') }}" class="backbutton">Back to add student</a></center>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        function verifyRollNumber() {
+            let rollNumber = document.getElementById("roll_number").value;
+
+            if (rollNumber) {
+                fetch('/verify_roll_number', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roll_number: rollNumber })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        document.getElementById("student_name").value = data.name;
+                    } else {
+                        alert("Roll number not found!");
+                        document.getElementById("student_name").value = "";
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        function updateFileName() {
+            let studentName = document.getElementById("student_name").value;
+            let photoInput = document.getElementById("photo");
+
+            if (studentName && photoInput.files.length > 0) {
+                let newFileName = studentName.toLowerCase().replace(" ", "_") + ".jpg";
+                let file = photoInput.files[0];
+
+                let newFile = new File([file], newFileName, { type: file.type });
+                let dataTransfer = new DataTransfer();
+                dataTransfer.items.add(newFile);
+                photoInput.files = dataTransfer.files;
+
+                console.log("File renamed to:", newFile.name);
+            }
+        }
+    </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        Swal.fire({
+            icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+            title: "{{ category|capitalize }}",
+            text: "{{ message }}",
+            confirmButtonText: "OK"
+        });
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    });
+</script>
+</body>
+</html>

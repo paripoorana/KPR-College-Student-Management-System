@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Warden Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // Wait for page load
+        window.onload = function () {
+            setTimeout(function () {
+                let flash = document.querySelector(".flash");
+                if (flash) {
+                    flash.remove();  // Removes element completely → no empty space
+                }
+            }, 5000); // same duration as your fadeOut (5s)
+        };
+    </script>
+</body>
+
+</html>

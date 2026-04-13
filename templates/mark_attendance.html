@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Hostel Attendance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .attendance-wrapper {
+            max-width: 760px;
+            margin: 30px auto;
+            padding: 20px;
+            font-family: 'Gill Sans', Calibri, sans-serif;
+        }
+
+        .attendance-card {
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 18px;
+            padding: 32px 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(6px);
+        }
+
+        .attendance-title {
+            text-align: center;
+            color: #00264d;
+            font-size: 1.9rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .attendance-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .student-info-card {
+            background: linear-gradient(135deg, #00264d, #003d80);
+            color: white;
+            border-radius: 14px;
+            padding: 22px 26px;
+            margin-bottom: 28px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px;
+            box-shadow: 0 6px 20px rgba(0, 38, 77, 0.22);
+        }
+
+        .student-info-card .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .student-info-card .info-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .student-info-card .info-value {
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #000000;
+            text-align: left;
+        }
+
+        .form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #d0d7de;
+    background: #f8f9fa;
+    font-size: 1rem;
+    box-sizing: border-box;
+    color: #000000 !important;
+    font-weight: 600;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #000000 !important;
+}
+
+.form-group input[readonly] {
+    background: #eef3f8;
+    color: #000000 !important;
+    font-weight: 600;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #000000 !important;
+    cursor: not-allowed;
+}
+
+.form-group input::placeholder {
+    color: #7a8793;
+    opacity: 1;
+}
+
+.form-group input:focus {
+    outline: none;
+    border: 1px solid #0055a5;
+    box-shadow: 0 0 0 3px rgba(0, 85, 165, 0.15);
+    background: #ffffff;
+}
+
+        .location-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+
+        .location-ok {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .location-fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .location-loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #003366, #0055a5);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 40px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Gill Sans', Calibri, sans-serif;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 51, 102, 0.3);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 22px;
+            color: #00264d;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .attendance-card {
+                padding: 22px 18px;
+            }
+
+            .attendance-title {
+                font-size: 1.5rem;
+            }
+
+            .student-info-card {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body class="tutordashboardbody">
+
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Student Portal</h1>
+        <div class="user-menu">
+            <button id="menuBtn" style="margin-right: 3cm;" class="user-menu-btn">
+                <i class="fas fa-user-circle"></i> Menu <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="menuContent" class="user-menu-content">
+                <div class="profile-section">
+                    <div class="profile-header">
+                        {% if student and student.photo %}
+                        <img src="{{ url_for('static', filename='students/student_photos/' + student.photo) }}"
+                            alt="Student Photo" class="profile-photo">
+                        {% else %}
+                        <div class="profile-photo"
+                            style="background-color: #ddd; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user" style="font-size: 3rem; color: #777;"></i>
+                        </div>
+                        {% endif %}
+                        <h2>{{ student.name if student else 'Student Name' }}</h2>
+                        <p>{{ student.roll_number if student else 'Roll Number' }}</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('student_category') }}"><i class="fas fa-arrow-left"></i> Back</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn" onclick="confirmLogout(event)">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="attendance-wrapper">
+        <div class="attendance-card">
+
+            <h2 class="attendance-title">
+                <i class="fas fa-bed"></i> Hostel Attendance
+            </h2>
+            <p class="attendance-subtitle">Mark your hostel attendance with location verification</p>
+
+            <!-- Student Info -->
+            <div class="student-info-card">
+                <div class="info-item">
+                    <span class="info-label">Name</span>
+                    <span class="info-value">{{ student.name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Roll Number</span>
+                    <span class="info-value">{{ student.roll_number }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Room Number</span>
+                    <span class="info-value">{{ student.room_number }}</span>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('mark_attendance') }}" id="attendanceForm">
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" value="{{ student.name }}" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="roll_number">Roll Number</label>
+                    <input type="text" id="roll_number" name="roll_number" value="{{ student.roll_number }}" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="room_number">Room Number</label>
+                    <input type="text" id="room_number" name="room_number" value="{{ student.room_number }}" readonly>
+                </div>
+
+                <div id="locationStatus" class="location-status location-loading">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="locationText">Detecting your location...</span>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-check-circle"></i> Mark Present
+                </button>
+            </form>
+
+            <div style="text-align:center;">
+                <a href="{{ url_for('student_category') }}" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Category Selection
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Get current location
+        function getLocation() {
+            const statusDiv = document.getElementById('locationStatus');
+            const textDiv = document.getElementById('locationText');
+
+            if (navigator.geolocation) {
+                textDiv.textContent = "Getting your location...";
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('latitude').value = position.coords.latitude;
+                        document.getElementById('longitude').value = position.coords.longitude;
+                        statusDiv.className = "location-status location-ok";
+                        textDiv.textContent = "Location captured successfully!";
+                    },
+                    (error) => {
+                        let message = "Error getting location: ";
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                message += "User denied the request for Geolocation.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message += "Location information is unavailable.";
+                                break;
+                            case error.TIMEOUT:
+                                message += "The request to get user location timed out.";
+                                break;
+                            case error.UNKNOWN_ERROR:
+                                message += "An unknown error occurred.";
+                                break;
+                        }
+                        statusDiv.className = "location-status location-fail";
+                        textDiv.textContent = message;
+                    }
+                );
+            } else {
+                statusDiv.className = "location-status location-fail";
+                textDiv.textContent = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        // Generate a persistent device ID
+        if (!localStorage.getItem('attendanceDeviceId')) {
+            localStorage.setItem('attendanceDeviceId', crypto.randomUUID());
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            getLocation();
+
+            const form = document.querySelector('form');
+            const deviceIdInput = document.createElement('input');
+            deviceIdInput.type = 'hidden';
+            deviceIdInput.name = 'device_id';
+            deviceIdInput.value = localStorage.getItem('attendanceDeviceId');
+            form.appendChild(deviceIdInput);
+
+            const resInput = document.createElement('input');
+            resInput.type = 'hidden';
+            resInput.name = 'screen_resolution';
+            resInput.value = `${window.screen.width}x${window.screen.height}`;
+            form.appendChild(resInput);
+
+            // Menu toggle
+            document.getElementById('menuContent').style.display = 'none';
+            const menuBtn = document.getElementById('menuBtn');
+            const menuContent = document.getElementById('menuContent');
+
+            menuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                menuContent.style.display = (menuContent.style.display === 'block') ? 'none' : 'block';
+                menuBtn.style.display = 'none';
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!menuContent.contains(e.target) && e.target !== menuBtn) {
+                    menuContent.style.display = 'none';
+                    menuBtn.style.display = 'inline-block';
+                }
+            });
+
+            // Flash messages
+            {% with messages = get_flashed_messages(with_categories = true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            Swal.fire({
+                icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+                title: "{{ category|capitalize }}",
+                text: "{{ message }}",
+                confirmButtonText: "OK"
+            });
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        });
+
+        function confirmLogout(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will be logged out of your account.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, Logout",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = event.target.href;
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

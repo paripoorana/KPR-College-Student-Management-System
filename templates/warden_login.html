@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warden Login - Hostel Outpass</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="wardenloginbody">
+
+      
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="wardendashboardflash">
+                            {% for category, message in messages %}
+                                <div class="flash {{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+    <div class="warden-book-container">
+        <!-- Left Side - Logo + Info -->
+        <div class="warden-book-left">
+            <img src="{{ url_for('static', filename='kprlogo.jpg') }}" alt="Logo" class="wardenlogo">
+            <h1>Warden Portal</h1>
+            <p>Access the warden dashboard to review and approve outpass requests and manage hostel operations.</p>
+        </div>
+        
+        <!-- Right Side - Login Form -->
+        <div class="warden-book-right">
+            <form action="{{ url_for('warden_login') }}" class="wardenlogin" method="POST">
+                
+                <h2>Warden Login</h2>
+              
+                
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" id="username" placeholder="Enter Username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" placeholder="Enter Password" required>
+                </div>
+
+                <button class="wardenloginbutton" type="submit">Login</button>
+                
+                <div>
+                    <a href="{{ url_for('login') }}" class="backbutton">Back To Main Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

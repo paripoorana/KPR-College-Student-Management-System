@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outpass History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        /* Container */
+        .history-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+        }
+
+        /* Header */
+        .history-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .history-header h1 {
+            color: #102B5C;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .history-header:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: #FFD700;
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+
+        /* Search Form */
+        .search-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-form label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #102B5C;
+            font-size: 18px;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-input-group input {
+            flex: 1;
+            min-width: 250px;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-input-group input:focus {
+            outline: none;
+            border-color: #102B5C;
+            box-shadow: 0 0 0 3px rgba(16, 43, 92, 0.2);
+        }
+
+        .search-button {
+            background: linear-gradient(to right, #102B5C, #0A1931);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+
+        .search-button:hover {
+            background: linear-gradient(to right, #0A1931, #102B5C);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 43, 92, 0.3);
+        }
+
+        /* ID Card Preview */
+        .id-card-preview {
+            display: none;
+            background: linear-gradient(135deg, #102B5C 0%, #0A1931 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .id-card-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #FFD700;
+            padding-bottom: 10px;
+        }
+
+        .id-card-header h3 {
+            color: #FFD700;
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .id-card-content {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .id-card-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            border: 3px solid #FFD700;
+            object-fit: cover;
+        }
+
+        .id-card-details {
+            flex: 1;
+        }
+
+        .id-card-details p {
+            margin: 5px 0;
+            font-size: 14px;
+            display: flex;
+        }
+
+        .id-card-details strong {
+            color: #FFD700;
+            min-width: 100px;
+            display: inline-block;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        .history-table th {
+            background: #102B5C;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .history-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .history-table tr:hover {
+            background: #edf2f7;
+        }
+
+        .history-table img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e2e8f0;
+        }
+
+        /* Status Badges */
+        .accepted {
+            background: #d4edda;
+            color: #155724;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .pending {
+            background: #fff3cd;
+            color: #856404;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* Back Button */
+        .back-button {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #102B5C;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #0A1931;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 43, 92, 0.3);
+        }
+
+        /* Flash Messages */
+        .flash {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash.danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            .history-container {
+                padding: 20px;
+            }
+            
+            .history-header h1 {
+                font-size: 26px;
+            }
+            
+            .search-input-group {
+                flex-direction: column;
+            }
+            
+            .search-input-group input {
+                min-width: 100%;
+            }
+            
+            .search-button {
+                width: 100%;
+            }
+            
+            .id-card-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .id-card-details p {
+                justify-content: center;
+            }
+            
+            .history-table {
+                font-size: 14px;
+            }
+            
+            .history-table th, 
+            .history-table td {
+                padding: 10px;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .history-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .id-card-preview {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <div class="history-header">
+            <h1><i class="fas fa-history"></i> Your Outpass History</h1>
+        </div>
+
+        <!-- Search Form -->
+        <form class="search-form" action="{{ url_for('history') }}" method="POST">
+            {% if rejection_message %}
+            <div class="flash danger">{{ rejection_message }}</div>
+            {% endif %}
+            
+            <label for="roll_number">Enter Roll Number to View History</label>
+            <div class="search-input-group">
+                <input type="text" id="roll_number" name="roll_number" placeholder="e.g., 23PA115" required 
+                    oninput="showIdCardPreview()">
+                <button class="search-button" type="submit"><i class="fas fa-search"></i> Search</button>
+            </div>
+        </form>
+
+        <!-- ID Card Preview -->
+        <div class="id-card-preview" id="idCardPreview">
+            <div class="id-card-header">
+                <h3>STUDENT ID CARD</h3>
+            </div>
+            <div class="id-card-content">
+                <img id="previewPhoto" src="" alt="Student Photo" class="id-card-photo">
+                <div class="id-card-details">
+                    <p><strong>Name:</strong> <span id="previewName">-</span></p>
+                    <p><strong>Roll No:</strong> <span id="previewRoll">-</span></p>
+                    <p><strong>Department:</strong> <span id="previewDept">-</span></p>
+                    <p><strong>Room No:</strong> <span id="previewRoom">-</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display Outpass Requests -->
+        <div class="table-container">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Name</th>
+                        <th>Roll No</th>
+                        <th>Out Date</th>
+                        <th>In Date</th>
+                        <th>Destination</th>
+                        <th>Reason</th>
+                        <th>Tutor Status</th>
+                        <th>Warden Status</th>
+                        <th>Submitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                    <tr>
+                        <td>
+                            {% if request.photo %}
+                            <img src="{{ url_for('static', filename='students/student_photos/' + request.photo) }}" alt="Photo">
+                            {% else %}
+                            <div style="width:50px; height:50px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-user" style="color:#a0aec0;"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ request.name }}</td>
+                        <td>{{ request.roll_number }}</td>
+                        <td>{{ request.out_date }}</td>
+                        <td>{{ request.in_date }}</td>
+                        <td>{{ request.destination }}</td>
+                        <td>{{ request.reason }}</td>
+                        <td>
+                            <span class="{{ 'accepted' if request.tutor_status == 'Accepted' else 'pending' }}">
+                                {{ request.tutor_status or 'Pending' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="{{ 'accepted' if request.warden_status == 'Accepted' else 'pending' }}">
+                                {{ request.warden_status or 'Pending' }}
+                            </span>
+                        </td>
+                        <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 20px;">
+                            <i class="fas fa-inbox" style="font-size: 40px; color: #cbd5e0; margin-bottom: 10px;"></i>
+                            <p>No outpass requests found. Enter a roll number to search.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Role-Based Navigation -->
+        {% if 'role' in session %}
+        <div class="back-button">
+            {% if session['role'] == 'student' %}
+            <a href="{{ url_for('student_dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Student Dashboard</a>
+            {% elif session['role'] == 'tutor' %}
+            <a href="{{ url_for('tutor_dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Tutor Dashboard</a>
+            {% elif session['role'] == 'warden' %}
+            <a href="{{ url_for('warden_dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Warden Dashboard</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="back-button">
+            <a href="{{ url_for('login') }}" class="back-btn"><i class="fas fa-sign-in-alt"></i> Back to Login</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Function to show ID card preview (simulated data)
+        function showIdCardPreview() {
+            const rollNumber = document.getElementById('roll_number').value;
+            const idCardPreview = document.getElementById('idCardPreview');
+            
+            if (rollNumber.length >= 3) {
+                // Simulate fetching student data (in a real app, this would be an API call)
+                const mockData = {
+                    '23PA115': {
+                        name: 'SIBI V',
+                        roll: '23PA115',
+                        dept: 'III BCOM PA B',
+                        room: 'CH-103',
+                        photo: '{{ url_for("static", filename="students/student_photos/sibi_v.jpg") }}'
+                    },
+                    '22BCA01': {
+                        name: 'ARUN K',
+                        roll: '22BCA01',
+                        dept: 'II BCA A',
+                        room: 'PN-201',
+                        photo: '{{ url_for("static", filename="students/student_photos/arun_k.jpg") }}'
+                    },
+                    '21BBA05': {
+                        name: 'PRIYA M',
+                        roll: '21BBA05',
+                        dept: 'III BBA A',
+                        room: 'GA-105',
+                        photo: '{{ url_for("static", filename="students/student_photos/priya_m.jpg") }}'
+                    }
+                };
+                
+                const studentData = mockData[rollNumber];
+                
+                if (studentData) {
+                    document.getElementById('previewName').textContent = studentData.name;
+                    document.getElementById('previewRoll').textContent = studentData.roll;
+                    document.getElementById('previewDept').textContent = studentData.dept;
+                    document.getElementById('previewRoom').textContent = studentData.room;
+                    
+                    const previewPhoto = document.getElementById('previewPhoto');
+                    previewPhoto.src = studentData.photo;
+                    previewPhoto.onerror = function() {
+                        this.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNlMmU4ZjAiLz48dGV4dCB4PSI1MCIgeT0iNTUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyMCIgZmlsbD0iIzljYTBjMiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U1RVREVOVDwvdGV4dD48L3N2Zz4=';
+                    };
+                    
+                    idCardPreview.style.display = 'block';
+                } else {
+                    idCardPreview.style.display = 'none';
+                }
+            } else {
+                idCardPreview.style.display = 'none';
+            }
+        }
+
+        // Flash messages with SweetAlert
+        document.addEventListener('DOMContentLoaded', function () {
+            {% with messages = get_flashed_messages(with_categories = true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            Swal.fire({
+                icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+                title: "{{ category|capitalize }}",
+                text: "{{ message }}",
+                confirmButtonColor: "#102B5C"
+            });
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        });
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const flashElements = document.querySelectorAll('.flash');
+            flashElements.forEach(function(el) {
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.5s';
+                setTimeout(function() {
+                    el.remove();
+                }, 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="tutordashboardbody">
+  
+    <!-- Header with navigation -->
+    <!-- ...existing code... -->
+    <div class="dashboard-header">
+        <h1>Student Portal</h1>
+        <div class="user-menu">
+            <button id="menuBtn" style="margin-right: 3cm;" class="user-menu-btn">
+                <i class="fas fa-user-circle"></i> Menu <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="menuContent" class="user-menu-content">
+
+                <div class="profile-section">
+                    <div class="profile-header">
+                        {% if student and student.photo %}
+                        <img src="{{ url_for('static', filename='students/student_photos/' + student.photo) }}"
+                            alt="Student Photo" class="profile-photo">
+                        {% else %}
+                        <div class="profile-photo"
+                            style="background-color: #ddd; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user" style="font-size: 3rem; color: #777;"></i>
+                        </div>
+                        {% endif %}
+                        <h2>{{ student.name if student else 'Student Name' }}</h2>
+                        <p>{{ student.roll_number if student else 'Roll Number' }}</p>
+                    </div>
+                    <div class="profile-details">
+                        <div class="profile-detail">
+                            <span>Department:</span>
+                            <span>{{ student.department if student else 'N/A' }}</span>
+                        </div>
+                        <div class="profile-detail">
+                            <span>Room No:</span>
+                            <span>{{ student.room_number if student else 'N/A' }}</span>
+                        </div>
+                        <div class="profile-detail">
+                            <span>Hostel:</span>
+                            <span>{{ student.hostel_name if student else 'N/A' }}</span>
+                        </div>
+                        <div class="profile-detail">
+                            <span>Category:</span>
+                            <span>{{ student.student_category if student else 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('mark_attendance') }}"><i class="fas fa-bed"></i> Mark Hostel Attendance</a>
+                <a href="{{ url_for('student_attendance_page', attendance_type='hosteller') }}"><i class="fas fa-clipboard-check"></i> Mark Regular Class Attendance</a>
+                <a href="{{ url_for('history') }}"><i class="fas fa-history"></i> View History</a>
+                <a href="{{ url_for('logout') }}" class="logout-btn" onclick="confirmLogout(event)">Logout</a>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ...existing code... -->
+    <div class="dashboard-container">
+        <!-- Profile Section -->
+
+        <!-- Outpass Form Section -->
+        <div class="outpass-section">
+            <h2 class="section-title">Outpass Request</h2>
+
+            <!-- Flash Messages -->
+
+
+            <form method="POST" action="{{ url_for('student_dashboard') }}">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Name :</label>
+                        <input type="text" id="name" name="name" value="{{ student.name if student }}" readonly
+                            class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="roll_number">Roll Number :</label>
+                        <input type="text" id="roll_number" name="roll_number"
+                            value="{{ student.roll_number if student }}" readonly class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="student_category">Student Category :</label>
+                        <select id="student_category" name="student_category" required class="form-control">
+                            <option value="">Select Category</option>
+                            <option value="sports" {% if student and student.student_category=='sports' %}selected{%
+                                endif %}>Sports</option>
+                            <option value="hostel" {% if student and student.student_category=='hostel' %}selected{%
+                                endif %}>Hostel</option>
+                            <option value="international" {% if student and student.student_category=='international'
+                                %}selected{% endif %}>International</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender :</label>
+                        <select id="gender" name="gender" required class="form-control">
+                            <option value="">Select Gender</option>
+                            <option value="Male" {% if student and student.gender.value=='Male' %}selected{% endif %}>
+                                Male</option>
+                            <option value="Female" {% if student and student.gender.value=='Female' %}selected{% endif
+                                %}>Female</option>
+                            <option value="Other" {% if student and student.gender.value=='Other' %}selected{% endif %}>
+                                Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="department">Department :</label>
+                        <select id="department" name="department" required>
+                            <option value="">Select Department</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.name }}" {% if student and student.department==dept.name %}selected{%
+                                endif %}>{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="room_number">Room Number :</label>
+                        <input type="text" id="room_number" name="room_number"
+                            value="{{ student.room_number if student }}" readonly class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hostel_name">Hostel Name :</label>
+                        <select id="hostel_name" name="hostel_name" required>
+                            <option value="">Select Hostel</option>
+                            {% for hostel in hostels %}
+                            <option value="{{ hostel.name }}" {% if student and student.hostel_name==hostel.name
+                                %}selected{% endif %}>{{ hostel.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="out_date">Out Date :</label>
+                        <input type="date" id="out_date" name="out_date" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="in_date">In Date :</label>
+                        <input type="date" id="in_date" name="in_date" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="out_time">Out Time :</label>
+                        <div class="time-inputs">
+                            <select class="form-control" id="out-hour" name="out-hour">
+                                {% for hour in range(1, 13) %}
+                                <option value="{{ " %02d"|format(hour) }}">{{ "%02d"|format(hour) }}</option>
+                                {% endfor %}
+                            </select>
+                            <span class="time-colon">:</span>
+                            <select class="form-control" id="out-minute" name="out-minute">
+                                {% for minute in range(0, 60, 5) %}
+                                <option value="{{ " %02d"|format(minute) }}">{{ "%02d"|format(minute) }}</option>
+                                {% endfor %}
+                            </select>
+                            <select style="font-size: x-small;" id="out-am-pm" name="out-am-pm">
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="in_time">In Time :</label>
+                        <div class="time-inputs">
+                            <select class="form-control" id="in-hour" name="in-hour">
+                                {% for hour in range(1, 13) %}
+                                <option value="{{ " %02d"|format(hour) }}">{{ "%02d"|format(hour) }}</option>
+                                {% endfor %}
+                            </select>
+                            <span class="time-colon">:</span>
+                            <select class="form-control" id="in-minute" name="in-minute">
+                                {% for minute in range(0, 60, 5) %}
+                                <option value="{{ " %02d"|format(minute) }}">{{ "%02d"|format(minute) }}</option>
+                                {% endfor %}
+                            </select>
+                            <select style="font-size: x-small;" id="in-am-pm" name="in-am-pm">
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-control">
+                        <label for="destination">Destination</label>
+                        <input type="text" id="destination" name="destination" required class="form-control">
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="reason">Reason :</label>
+                        <textarea id="reason" name="reason" required class="form-control" rows="4"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" onclick="return confirmOutpass(event)">
+                    Submit Outpass Request
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmOutpass(event) {
+            event.preventDefault();
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to apply for an Outpass?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, Apply!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitFormAsync();
+                }
+            });
+
+            return false;
+        }
+
+        async function submitFormAsync() {
+            const form = document.querySelector('form[method="POST"]');
+            const formData = new FormData(form);
+
+            // Show loading briefly
+            Swal.fire({
+                title: "Submitting...",
+                text: "Please wait...",
+                icon: "info",
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Instant success - no page reload needed
+                    Swal.fire({
+                        icon: "success",
+                        title: "Outpass Request Submitted!",
+                        text: "Your request has been submitted successfully. Approval notifications will be sent shortly.",
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+
+                    // Clear form fields
+                    form.reset();
+
+                    // Optionally reload page after delay to show new data
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3500);
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: result.message || "Failed to submit outpass request"
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "An error occurred while submitting your request. Please try again."
+                });
+            }
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Always hide menu on page load
+            document.getElementById('menuContent').style.display = 'none';
+
+            // Menu open/close logic
+            const menuBtn = document.getElementById('menuBtn');
+            const menuContent = document.getElementById('menuContent');
+            menuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                menuContent.style.display = (menuContent.style.display === 'block') ? 'none' : 'block';
+            });
+            document.addEventListener('click', function (e) {
+                if (!menuContent.contains(e.target) && e.target !== menuBtn) {
+                    menuContent.style.display = 'none';
+                }
+            });
+            menuContent.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    menuContent.style.display = 'none';
+                });
+            });
+        });
+    </script>
+
+    <script>
+        // Wait for page load
+        window.onload = function () {
+            setTimeout(function () {
+                let flash = document.querySelector(".flash");
+                if (flash) {
+                    flash.remove();  // Removes element completely → no empty space
+                }
+            }, 5000); // same duration as your fadeOut (5s)
+        };
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuBtn = document.getElementById('menuBtn');
+            const menuContent = document.getElementById('menuContent');
+
+            // Hide menu on page load
+            menuContent.style.display = 'none';
+
+            // When clicking the button → show menu & hide button
+            menuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                menuContent.style.display = 'block';
+                menuBtn.style.display = 'none';  // hide button
+            });
+
+            // When clicking outside → hide menu & show button again
+            document.addEventListener('click', function (e) {
+                if (!menuContent.contains(e.target) && e.target !== menuBtn) {
+                    menuContent.style.display = 'none';
+                    menuBtn.style.display = 'inline-block';  // show button back
+                }
+            });
+
+            // When clicking any menu link → hide menu & show button again
+            menuContent.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    menuContent.style.display = 'none';
+                    menuBtn.style.display = 'inline-block';
+                });
+            });
+        });
+    </script>
+
+
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        Swal.fire({
+            icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+            title: "{{ category|capitalize }}",
+            text: "{{ message }}",
+            confirmButtonText: "OK"
+        });
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    });
+</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmLogout(event) {
+            event.preventDefault(); // stop immediate logout
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will be logged out of your account.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, Logout",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = event.target.href; // proceed to logout URL
+                }
+            });
+        }
+    </script>
+
+
+
+</body>
+
+</html>

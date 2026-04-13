@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        /* Container */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+        }
+
+        /* Header */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .dashboard-header h1 {
+            color: #102B5C;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-header p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .dashboard-header:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: #FFD700;
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-top: 5px solid;
+            cursor: pointer;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .summary-card.total {
+            border-color: #102B5C;
+        }
+
+        .summary-card.present {
+            border-color: #2e7d32;
+        }
+
+        .summary-card.absent {
+            border-color: #c62828;
+        }
+
+        .summary-card.missing {
+            border-color: #e65100;
+        }
+
+        .summary-card h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .summary-card .number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-card.total .number {
+            color: #102B5C;
+        }
+
+        .summary-card.present .number {
+            color: #2e7d32;
+        }
+
+        .summary-card.absent .number {
+            color: #c62828;
+        }
+
+        .summary-card.missing .number {
+            color: #e65100;
+        }
+
+        /* Year Cards */
+        .year-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .year-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+        }
+
+        .year-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .year-card-header {
+            background: #102B5C;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .year-card-content {
+            padding: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .stat-present {
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+        }
+
+        .stat-absent {
+            background: linear-gradient(135deg, #c62828, #f44336);
+        }
+
+        .stat-missing {
+            background: linear-gradient(135deg, #e65100, #ff9800);
+        }
+
+        .stat-item .number {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .stat-item .label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .student-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .student-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 14px;
+        }
+
+        .student-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-item i {
+            margin-right: 8px;
+            color: #777;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #102B5C, #0A1931);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            min-width: 180px;
+            gap: 10px;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, #0A1931, #102B5C);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 43, 92, 0.3);
+        }
+
+        .action-btn.secondary {
+            background: #f8f9fa;
+            color: #102B5C;
+            border: 1px solid #ddd;
+        }
+
+        .action-btn.secondary:hover {
+            background: #e9ecef;
+        }
+
+        /* Progress Bars */
+        .progress-container {
+            margin: 15px 0;
+        }
+
+        .progress-title {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 5px;
+        }
+
+        .progress-present {
+            background: linear-gradient(to right, #2e7d32, #4caf50);
+        }
+
+        .progress-absent {
+            background: linear-gradient(to right, #c62828, #f44336);
+        }
+
+        .progress-missing {
+            background: linear-gradient(to right, #e65100, #ff9800);
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            .dashboard-container {
+                padding: 20px;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 26px;
+            }
+            
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .year-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .summary-card, .year-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Scrollbar Styling */
+        .student-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .student-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .student-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        .student-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-calendar-check"></i> Attendance Dashboard</h1>
+            <p>Overview for {{ today }}</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card total" onclick="navigateToStudents('total')">
+                <h3>Total Students</h3>
+               <div class="number">{{ attendance_data.Total }}</div>
+                <p>All registered students</p>
+            </div>
+            
+            <div class="summary-card present" onclick="navigateToStudents('present')">
+                <h3>Present Today</h3>
+               <div class="number">{{ attendance_data.Present }}</div>
+                <p>Marked attendance</p>
+            </div>
+            
+            <div class="summary-card absent" onclick="navigateToStudents('absent')">
+                <h3>On Outpass</h3>
+               <div class="number">{{ attendance_data.Absent }}</div>
+                <p>Approved outpass</p>
+            </div>
+            
+            <div class="summary-card missing" onclick="navigateToStudents('missing')">
+                <h3>Missing in Hostel</h3>
+               <div class="number">{{ attendance_data.Missing }}</div>
+                <p>Not accounted for</p>
+            </div>
+        </div>
+
+        <!-- Year Cards -->
+       <div class="year-cards">
+    <div class="year-card">
+        <div class="year-card-header">
+            Hostel Attendance Summary
+        </div>
+        <div class="year-card-content">
+            
+
+            <!-- Progress Bars -->
+            <div class="progress-container">
+                <div class="progress-title">
+                    <span>Attendance Breakdown</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill progress-present" style="width: {{ (attendance_data.Present / attendance_data.Total * 100) if attendance_data.Total > 0 else 0 }}%"></div>
+                    <div class="progress-fill progress-absent" style="width: {{ (attendance_data.Absent / attendance_data.Total * 100) if attendance_data.Total > 0 else 0 }}%"></div>
+                    <div class="progress-fill progress-missing" style="width: {{ (attendance_data.Missing / attendance_data.Total * 100) if attendance_data.Total > 0 else 0 }}%"></div>
+                </div>
+            </div>
+
+            {% if attendance_data.AbsentStudents %}
+            <h4><i class="fas fa-external-link-alt"></i> Students on Outpass</h4>
+            <div class="student-list">
+                {% for student in attendance_data.AbsentStudents %}
+                <div class="student-item">
+                    <i class="fas fa-user"></i> {{ student.roll_number }} - {{ student.name }} (Room: {{ student.room_number }})
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if attendance_data.MissingStudents %}
+            <h4><i class="fas fa-search"></i> Missing Students</h4>
+            <div class="student-list">
+                {% for student in attendance_data.MissingStudents %}
+                <div class="student-item">
+                    <i class="fas fa-user"></i> {{ student.roll_number }} - {{ student.name }} (Room: {{ student.room_number }})
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('generate_attendance_report') }}" class="action-btn">
+                <i class="fas fa-file-pdf"></i> Generate Report
+            </a>
+            <a href="{{ url_for('send_attendance_report') }}" class="action-btn">
+                <i class="fas fa-envelope"></i> Send via Email
+            </a>
+            <a href="{{ url_for('warden_dashboard') }}" class="action-btn secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Function to navigate to warden students page
+        function navigateToStudents(category) {
+            // Redirect to warden students page with the appropriate category
+            window.location.href = "{{ url_for('warden_students', category='') }}" + category;
+        }
+
+        // Flash messages with SweetAlert
+        document.addEventListener('DOMContentLoaded', function () {
+            {% with messages = get_flashed_messages(with_categories = true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            Swal.fire({
+                icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+                title: "{{ category|capitalize }}",
+                text: "{{ message }}",
+                confirmButtonColor: "#102B5C",
+                background: "#fff",
+                color: "#333"
+            });
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        });
+    </script>
+</body>
+</html>

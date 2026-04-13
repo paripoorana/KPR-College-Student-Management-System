@@ -1,0 +1,16 @@
+Flask
+Flask-SQLAlchemy
+Flask-Mail
+pymysql
+python-dotenv
+twilio
+requests
+urllib3
+itsdangerous
+pandas
+XlsxWriter
+gunicorn
+psycopg2
+alembic
+apscheduler
+pytz

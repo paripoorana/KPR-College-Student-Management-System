@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            color: #333;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            background: linear-gradient(to bottom, #102B5C, #0A1931);
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a {
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 16px;
+            color: #f1f1f1;
+            display: block;
+            transition: 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar a:hover {
+            background-color: rgba(255, 215, 0, 0.1);
+            color: #FFD700;
+            border-left: 4px solid #FFD700;
+        }
+
+        .sidebar .closebtn {
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 28px;
+            margin-left: 50px;
+            color: #FFD700;
+        }
+
+        .sidebar .sidebar-header {
+            padding: 20px 25px;
+            color: #FFD700;
+            font-size: 22px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .openbtn {
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #102B5C;
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            position: fixed;
+            top: 20px;
+            left: 0;
+            z-index: 999;
+            transition: 0.3s;
+        }
+
+        .openbtn:hover {
+            background-color: #0A1931;
+        }
+
+        /* Main Content */
+        .main-content {
+            transition: margin-left 0.5s;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Form Container */
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #102B5C;
+            position: relative;
+        }
+
+        .form-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-header:after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: #FFD700;
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #102B5C;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #102B5C;
+            box-shadow: 0 0 0 3px rgba(16, 43, 92, 0.2);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(to right, #102B5C, #0A1931);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, #0A1931, #102B5C);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 43, 92, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #102B5C;
+            border: 1px solid #ddd;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 15px;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        /* Sidebar Buttons */
+        .sidebar-btn {
+            background: rgba(255, 215, 0, 0.1);
+            color: #FFD700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin: 10px;
+            text-align: center;
+            display: block;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .sidebar-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            transform: translateX(5px);
+        }
+
+        .delete-btn {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 53, 69, 0.2);
+        }
+
+        /* Flash Messages */
+        .flash-container {
+            margin-bottom: 20px;
+        }
+
+        .flash {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                padding-top: 50px;
+            }
+
+            .sidebar a {
+                font-size: 14px;
+                padding: 12px 20px;
+            }
+
+            .form-container {
+                padding: 20px;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div id="mySidebar" class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-user-graduate"></i> Management
+        </div>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+
+        <div class="sidebar-btn" onclick="confirmDownload('students')">
+            <i class="fas fa-download"></i> Download Student Data
+        </div>
+
+        <div class="sidebar-btn" onclick="confirmDownload('outpass')">
+            <i class="fas fa-file-export"></i> Download Outpass Data
+        </div>
+
+        <div class="sidebar-btn delete-btn" onclick="deleteAllStudents()">
+            <i class="fas fa-trash-alt"></i> Delete All Students
+        </div>
+
+        <a href="{{ url_for('upload_photo') }}">
+            <i class="fas fa-camera"></i> Upload Student Photo
+        </a>
+    
+        <a href="{{ url_for('manage_departments') }}">
+            <i class="fas fa-building"></i> Manage Departments
+        </a>
+        <a href="{{ url_for('manage_hostels') }}">
+            <i class="fas fa-hotel"></i> Manage Hostels
+        </a>
+        <a href="{{ url_for('warden_tutors') }}">
+            <i class="fas fa-chalkboard-teacher"></i> Manage Tutors
+        </a>
+    </div>
+
+    <!-- Button to Open Sidebar -->
+    <button class="openbtn" onclick="openNav()">☰</button>
+
+    <div class="main-content">
+        <div class="form-container">
+
+
+            <div class="form-header">
+                <h2>Add New Student</h2>
+                <p>Fill in all the required student information</p>
+            </div>
+
+            <!-- Add Student Form -->
+            <form id="addStudentForm" method="POST" action="{{ url_for('add_student') }}" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="Enter student's full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="roll_number">Roll Number *</label>
+                        <input type="text" id="roll_number" name="roll_number" required placeholder="e.g., 23PA115">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">Username *</label>
+                        <input type="text" id="username" name="username" required placeholder="Create a username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender *</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <input type="password" id="password" name="password" required placeholder="Create a password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password *</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required
+                            placeholder="Confirm your password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parent_phone">Parent's Phone Number *</label>
+                        <input type="text" id="parent_phone" name="parent_phone" required
+                            placeholder="10-digit phone number">
+                        <small>Format: 9360590863 (without +91 or spaces)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="department">Department:</label>
+                        <select id="department" name="department" required>
+                            <option value="">Select Department</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.name }}" {% if student and student.department==dept.name %}selected{%
+                                endif %}>
+                                {{ dept.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                     <div class="form-group">
+                        <label for="hostel_name">Hostel Name :</label>
+                        <select id="hostel_name" name="hostel_name" required>
+                            <option value="">Select Hostel</option>
+                            {% for hostel in hostels %}
+                            <option value="{{ hostel.name }}" {% if student and student.hostel_name==hostel.name
+                                %}selected{% endif %}>{{ hostel.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="room_number">Room Number *</label>
+                        <input type="text" id="room_number" name="room_number" required placeholder="e.g., CH-103">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="student_category">Student Category *</label>
+                        <select id="student_category" name="student_category" required>
+                            <option value="">Select Category</option>
+                            <option value="sports">Sports</option>
+                            <option value="hostel">Hostel</option>
+                            <option value="international">International</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="photo">Upload Student Photo *</label>
+                        <input type="file" id="photo" name="photo" accept="image/*" required>
+                        <small>Accepted formats: JPG, PNG, JPEG. Max size: 5MB</small>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-user-plus"></i> Add Student
+                </button>
+
+                <a href="{{ url_for('warden_dashboard') }}" class="btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openNav() {
+            document.getElementById("mySidebar").style.width = "280px";
+            document.querySelector(".openbtn").style.opacity = "0";
+        }
+
+        function closeNav() {
+            document.getElementById("mySidebar").style.width = "0";
+            document.querySelector(".openbtn").style.opacity = "1";
+        }
+
+        // Function to confirm download
+        function confirmDownload(type) {
+            let message = type === 'students'
+                ? "Do you want to download the student data as an Excel file?"
+                : "Do you want to download the outpass data as an Excel file?";
+
+            let url = type === 'students'
+                ? "{{ url_for('download_students_excel') }}"
+                : "{{ url_for('download_outpass_excel') }}";
+
+            Swal.fire({
+                title: "Confirm Download",
+                text: message,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#102B5C",
+                cancelButtonColor: "#6c757d",
+                confirmButtonText: "Yes, Download",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
+
+        function deleteAllStudents() {
+            Swal.fire({
+                title: "Are you absolutely sure?",
+                text: "This action will permanently delete ALL students and their photos. This cannot be undone!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc3545",
+                cancelButtonColor: "#6c757d",
+                confirmButtonText: "Yes, delete all students",
+                cancelButtonText: "Cancel",
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("{{ url_for('delete_all_students') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.category === "success") {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: data.message,
+                                    icon: "success",
+                                    confirmButtonColor: "#102B5C"
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: "Error!",
+                                    text: data.message,
+                                    icon: "error",
+                                    confirmButtonColor: "#102B5C"
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: "Error!",
+                                text: "An error occurred while deleting students.",
+                                icon: "error",
+                                confirmButtonColor: "#102B5C"
+                            });
+                        });
+                }
+            });
+        }
+
+        // Form validation
+        document.getElementById('addStudentForm').addEventListener('submit', function (e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                Swal.fire({
+                    title: "Password Mismatch",
+                    text: "The passwords you entered do not match. Please try again.",
+                    icon: "error",
+                    confirmButtonColor: "#102B5C"
+                });
+            }
+        });
+    </script>
+
+    <!-- SweetAlert Flash Messages -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            {% with messages = get_flashed_messages(with_categories = true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            Swal.fire({
+                icon: "{{ 'success' if category == 'success' else ('error' if category == 'danger' else 'info') }}",
+                title: "{{ category|capitalize }}",
+                text: "{{ message }}",
+                confirmButtonText: "OK"
+            });
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        });
+    </script>
+</body>
+
+</html>
